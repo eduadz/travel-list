@@ -1,25 +1,96 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+export default function App(){ 
+  const [items, setItems] = useState([]);
+
+  function handleAddItem(item){
+    setItems(items => [...items, item]) //Utilizando spread operator
+  }
+  function handleDeleteItem(id){
+    setItems(items => items.filter((item) => item.id !== id));
+  }
+  function handleToggleItem(id){
+    setItems((items) => 
+      items.map((item) => 
+        item.id === id ? {...item, packed: !item.packed} : item));
+  }
+
+  return(
+    <div className="app">
+      <Logo/>
+      <Form onAddItems = {handleAddItem}/>
+      <PackingList onDeleteItem = {handleDeleteItem} onToggleItem={handleToggleItem} items={items}/>
+      <Stats items={items}/>
     </div>
   );
 }
 
-export default App;
+function Logo(){
+  return <h1> Far Away</h1>
+}
+
+function Form({onAddItems}){
+  const [description, setDescription] = useState("");
+  const [quantity, setQuantity] = useState(1);
+
+  function HandleSubmit(e){
+    e.preventDefault() // Evitar que o forms atualize a pagina ao dar submit
+    
+    if (!description) return;
+    const newItem = { description, quantity, packed: false , id: Date.now()};
+    onAddItems(newItem);
+  } 
+
+  return (
+    <form className="add-form" onSubmit={HandleSubmit}>
+      <h3>What you need for your trip ?</h3>
+      <select value={quantity} onChange={(e)=>setQuantity(Number(e.target.value))}>
+        {Array.from({length:20}, (_,i) => i + 1).map(num=>
+          <option value={num} key={num}>
+            {num}
+          </option>)}
+      </select>
+      <input type="text" placeholder="Item..." value={description} onChange={(e)=>setDescription(e.target.value)}>
+      </input>
+      <button className="buttons">ADD</button>
+    </form>
+  );
+}
+
+function PackingList({items, onDeleteItem, onToggleItem}){
+  return( 
+    <div className="list">
+      <ul> 
+        {items.map((item) =>
+        <Item
+          itemObj = {item}
+          onDeleteItem = {onDeleteItem}
+          onToggleItem = {onToggleItem}
+          key = {item.id}
+        />
+        )}
+      </ul>
+    </div>
+  );
+}
+
+function Item({itemObj, onDeleteItem, onToggleItem}){
+  return(
+    <li>
+      <input type="checkbox" value = {itemObj.packed} onChange={() => onToggleItem(itemObj.id) } ></input>
+      <span style={itemObj.packed ? {textDecoration:"line-through"} : {}}> {itemObj.quantity} {itemObj.description}</span>
+      <button onClick={() => onDeleteItem(itemObj.id)}>❌</button>
+    </li>
+  );
+}
+
+function Stats({items}){
+  const quantityItems = items.reduce((c, items) => c + items.quantity, 0);
+  const quantityPackeds = items.filter((item) => item.packed).length;
+
+  return(
+  <footer className="stats">
+    <em>You have {quantityItems} items on your list, and you already packed {quantityPackeds} (X%)</em>
+  </footer>
+  );
+}
