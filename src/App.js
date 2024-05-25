@@ -15,11 +15,24 @@ export default function App(){
         item.id === id ? {...item, packed: !item.packed} : item));
   }
 
+  function handleClearList(){
+    const confirmed = window.confirm(
+      "Delete all items ?"
+    );
+
+    if(confirmed) setItems([]);
+  }
+
   return(
     <div className="app">
       <Logo/>
       <Form onAddItems = {handleAddItem}/>
-      <PackingList onDeleteItem = {handleDeleteItem} onToggleItem={handleToggleItem} items={items}/>
+      <PackingList 
+        onDeleteItem = {handleDeleteItem} 
+        onToggleItem={handleToggleItem} 
+        onClearList={handleClearList} 
+        items={items}
+      />
       <Stats items={items}/>
     </div>
   );
@@ -56,7 +69,7 @@ function Form({onAddItems}){
   );
 }
 
-function PackingList({items, onDeleteItem, onToggleItem}){
+function PackingList({items, onDeleteItem, onToggleItem, onClearList}){
   const [sortBy, setSortBy] = useState('input');
 
   let sortedItems;
@@ -89,6 +102,7 @@ function PackingList({items, onDeleteItem, onToggleItem}){
           <option value="description">Sort by Description</option>
           <option value="packed">Sort by Packed Status</option>
         </select>
+        <button onClick={onClearList}>Clear List</button>
       </div>
     </div>
   );
@@ -112,7 +126,7 @@ function Stats({items}){
 
   return(
   <footer className="stats">
-    <em>You have {quantityItems} items on your list, and you already packed {quantityPackeds} ({perc}%)</em>
+    <em>You have {quantityItems} items on your list, and you already packed {quantityPackeds} ({perc >0 ? perc:0}%)</em>
   </footer>
   );
 }
