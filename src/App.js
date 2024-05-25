@@ -50,18 +50,31 @@ function Form({onAddItems}){
             {num}
           </option>)}
       </select>
-      <input type="text" placeholder="Item..." value={description} onChange={(e)=>setDescription(e.target.value)}>
-      </input>
+      <input type="text" placeholder="Item..." value={description} onChange={(e)=>setDescription(e.target.value)}></input>
       <button className="buttons">ADD</button>
     </form>
   );
 }
 
 function PackingList({items, onDeleteItem, onToggleItem}){
+  const [sortBy, setSortBy] = useState('input');
+
+  let sortedItems;
+
+  if (sortBy === "input") sortedItems = items;
+
+  if (sortBy === "description") sortedItems = items
+    .slice()
+    .sort((a,b) => a.description.localeCompare(b.description));
+
+  if(sortBy === "packed") sortedItems = items
+    .slice()
+    .sort((a,b) => Number(a.packed) - Number(b.packed) );
+
   return( 
     <div className="list">
       <ul> 
-        {items.map((item) =>
+        {sortedItems.map((item) =>
         <Item
           itemObj = {item}
           onDeleteItem = {onDeleteItem}
@@ -70,6 +83,13 @@ function PackingList({items, onDeleteItem, onToggleItem}){
         />
         )}
       </ul>
+      <div className="actions">
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="input">Sort by Input Order</option>
+          <option value="description">Sort by Description</option>
+          <option value="packed">Sort by Packed Status</option>
+        </select>
+      </div>
     </div>
   );
 }
@@ -85,12 +105,14 @@ function Item({itemObj, onDeleteItem, onToggleItem}){
 }
 
 function Stats({items}){
-  const quantityItems = items.reduce((c, items) => c + items.quantity, 0);
+  const quantityItems = items.length;
   const quantityPackeds = items.filter((item) => item.packed).length;
+
+  const perc = Math.round((quantityPackeds/quantityItems)*100);
 
   return(
   <footer className="stats">
-    <em>You have {quantityItems} items on your list, and you already packed {quantityPackeds} (X%)</em>
+    <em>You have {quantityItems} items on your list, and you already packed {quantityPackeds} ({perc}%)</em>
   </footer>
   );
 }
